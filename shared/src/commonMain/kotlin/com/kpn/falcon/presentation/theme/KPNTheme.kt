@@ -14,12 +14,18 @@ private val KPNColorScheme = lightColorScheme(
     secondary = KPNColors.AccentOrange,
     onSecondary = KPNColors.Surface,
     tertiary = KPNColors.AccentGreen,
+    onTertiary = KPNColors.Surface,
     background = KPNColors.Background,
-    surface = KPNColors.Surface,
     onBackground = KPNColors.TextPrimary,
+    surface = KPNColors.Surface,
     onSurface = KPNColors.TextPrimary,
+    surfaceVariant = KPNColors.Background,
+    onSurfaceVariant = KPNColors.TextSecondary,
     error = KPNColors.AccentRed,
-    outline = KPNColors.Border
+    onError = KPNColors.Surface,
+    outline = KPNColors.Border,
+    outlineVariant = KPNColors.Border,
+    scrim = KPNColors.TextPrimary.copy(alpha = 0.32f)
 )
 
 val KPNTypography = Typography(
@@ -52,6 +58,32 @@ val KPNTypography = Typography(
         fontSize = 11.sp,
         fontWeight = FontWeight.Medium,
         color = KPNColors.TextSecondary
+    ),
+    // Extra styles used throughout the app
+    titleLarge = TextStyle(
+        fontSize = 20.sp,
+        fontWeight = FontWeight.Bold,
+        color = KPNColors.TextPrimary
+    ),
+    titleSmall = TextStyle(
+        fontSize = 14.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = KPNColors.TextPrimary
+    ),
+    bodySmall = TextStyle(
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Normal,
+        color = KPNColors.TextSecondary
+    ),
+    labelMedium = TextStyle(
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Medium,
+        color = KPNColors.TextPrimary
+    ),
+    labelLarge = TextStyle(
+        fontSize = 14.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = KPNColors.TextPrimary
     )
 )
 
@@ -60,6 +92,7 @@ fun KPNTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = KPNColorScheme,
         typography = KPNTypography,
+        shapes = KPNShapes,
         content = content
     )
 }
