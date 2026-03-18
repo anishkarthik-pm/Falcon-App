@@ -3,10 +3,14 @@ package com.kpn.falcon.presentation.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kpn.falcon.data.api.PropertyApiService
-import com.kpn.falcon.data.models.GeoIQData
+import com.kpn.falcon.data.api.UpdatePropertyRequest
 import com.kpn.falcon.data.models.PropertyLead
+import com.kpn.falcon.data.models.ScoringData
 import com.kpn.falcon.data.repository.PropertyRepository
+import com.kpn.falcon.domain.usecase.AutoSuggestScoringUseCase
+import com.kpn.falcon.domain.usecase.CalculateCompositeScoreUseCase
 import com.kpn.falcon.domain.usecase.SLACountdownUseCase
+import com.kpn.falcon.domain.usecase.SuggestedScore
 import com.kpn.falcon.util.FilePicker
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +31,14 @@ data class PropertyDetailUiState(
     // SLA
     val slaDeadline: Long = 0L,
     val slaHoursRemaining: Long = 0L,
-    val slaIsBreached: Boolean = false
+    val slaIsBreached: Boolean = false,
+    // Scoring
+    val suggestedScores: List<SuggestedScore> = emptyList(),
+    val currentScores: Map<String, Int> = emptyMap(),   // paramKey → score 1-5
+    val compositeScore: Float? = null,
+    val scoringSaving: Boolean = false,
+    val scoringError: String? = null,
+    val scoringSaved: Boolean = false
 )
 
 class PropertyDetailViewModel(
@@ -35,7 +46,9 @@ class PropertyDetailViewModel(
     private val propertyRepository: PropertyRepository,
     private val propertyApiService: PropertyApiService,
     private val slaCountdown: SLACountdownUseCase,
-    private val filePicker: FilePicker
+    private val filePicker: FilePicker,
+    private val autoSuggestScoring: AutoSuggestScoringUseCase,
+    private val calculateCompositeScore: CalculateCompositeScoreUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PropertyDetailUiState())
@@ -56,12 +69,37 @@ class PropertyDetailViewModel(
                 } else {
                     slaCountdown.getDeadline(property.createdAt)
                 }
+                // Auto-suggest scores from store specs
+                val suggestions = autoSuggestScoring.execute(
+                    area = property.storeSpecs.totalArea,
+                    frontage = property.storeSpecs.storeFrontage.toInt(),
+                    carParking = property.roadAccess.carParkingCount,
+                    bikeParking = property.roadAccess.bikeParkingCount,
+                    stepsToEntry = property.storeSpecs.stepsToEntry,
+                    roadWidth = property.roadAccess.frontRoadWidth.toInt(),
+                    juiceCounterAvailable = property.storeSpecs.juiceCounterAvailable
+                )
+                // Initialise scores from saved scoring or suggestions
+                val existing = property.scoring
+                val initScores = mapOf(
+                    "area" to (existing?.scoreArea ?: suggestions.find { it.parameter == "area" }?.suggestedScore ?: 0),
+                    "frontage" to (existing?.scoreFrontage ?: suggestions.find { it.parameter == "frontage" }?.suggestedScore ?: 0),
+                    "carParking" to (existing?.scoreCarParking ?: suggestions.find { it.parameter == "carParking" }?.suggestedScore ?: 0),
+                    "bikeParking" to (existing?.scoreBikeParking ?: suggestions.find { it.parameter == "bikeParking" }?.suggestedScore ?: 0),
+                    "juiceCounter" to (existing?.scoreJuiceCounter ?: suggestions.find { it.parameter == "juiceCounter" }?.suggestedScore ?: 0),
+                    "stepsToEntry" to (existing?.scoreStepsToEntry ?: suggestions.find { it.parameter == "stepsToEntry" }?.suggestedScore ?: 0),
+                    "roadWidth" to (existing?.scoreRoadWidth ?: suggestions.find { it.parameter == "roadWidth" }?.suggestedScore ?: 0)
+                )
+                val composite = computeComposite(initScores)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     property = property,
                     slaDeadline = deadline,
                     slaHoursRemaining = slaCountdown.getHoursRemaining(deadline).coerceAtLeast(0L),
-                    slaIsBreached = slaCountdown.isBreached(deadline)
+                    slaIsBreached = slaCountdown.isBreached(deadline),
+                    suggestedScores = suggestions,
+                    currentScores = initScores,
+                    compositeScore = composite
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -101,6 +139,78 @@ class PropertyDetailViewModel(
 
     fun dismissGeoIqError() {
         _uiState.value = _uiState.value.copy(geoIqUploadError = null)
+    }
+
+    // ─── Scoring ─────────────────────────────────────
+
+    fun updateScore(parameter: String, score: Int) {
+        val updated = _uiState.value.currentScores.toMutableMap().apply { put(parameter, score.coerceIn(0, 5)) }
+        _uiState.value = _uiState.value.copy(
+            currentScores = updated,
+            compositeScore = computeComposite(updated),
+            scoringSaved = false
+        )
+    }
+
+    fun saveScoring(salesProjection: Long?, comparableRef: String?, strategicNotes: String?) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(scoringSaving = true, scoringError = null)
+            try {
+                val s = _uiState.value.currentScores
+                val scoring = ScoringData(
+                    scoreArea = s["area"],
+                    scoreFrontage = s["frontage"],
+                    scoreCarParking = s["carParking"],
+                    scoreBikeParking = s["bikeParking"],
+                    scoreJuiceCounter = s["juiceCounter"],
+                    scoreStepsToEntry = s["stepsToEntry"],
+                    scoreRoadWidth = s["roadWidth"],
+                    compositeScore = _uiState.value.compositeScore,
+                    salesProjection = salesProjection,
+                    comparableStoreRef = comparableRef,
+                    strategicNotes = strategicNotes,
+                    confirmedByStateHead = _uiState.value.property?.scoring?.confirmedByStateHead ?: false
+                )
+                val updated = propertyRepository.updateProperty(
+                    propertyId,
+                    UpdatePropertyRequest(scoring = scoring)
+                )
+                _uiState.value = _uiState.value.copy(
+                    scoringSaving = false,
+                    scoringSaved = true,
+                    property = updated
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    scoringSaving = false,
+                    scoringError = e.message ?: "Failed to save scoring"
+                )
+            }
+        }
+    }
+
+    fun confirmScoringAsStateHead() {
+        viewModelScope.launch {
+            try {
+                val scoring = _uiState.value.property?.scoring?.copy(confirmedByStateHead = true) ?: return@launch
+                val updated = propertyRepository.updateProperty(propertyId, UpdatePropertyRequest(scoring = scoring))
+                _uiState.value = _uiState.value.copy(property = updated, scoringSaved = true)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(scoringError = e.message ?: "Confirmation failed")
+            }
+        }
+    }
+
+    private fun computeComposite(scores: Map<String, Int>): Float {
+        return calculateCompositeScore.execute(
+            scoreArea = scores["area"] ?: 0,
+            scoreFrontage = scores["frontage"] ?: 0,
+            scoreCarParking = scores["carParking"] ?: 0,
+            scoreBikeParking = scores["bikeParking"] ?: 0,
+            scoreJuiceCounter = scores["juiceCounter"] ?: 0,
+            scoreStepsToEntry = scores["stepsToEntry"] ?: 0,
+            scoreRoadWidth = scores["roadWidth"] ?: 0
+        )
     }
 
     // ─── SLA live countdown ──────────────────────────

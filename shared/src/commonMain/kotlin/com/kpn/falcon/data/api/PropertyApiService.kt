@@ -27,7 +27,8 @@ data class UpdatePropertyRequest(
     val commercials: com.kpn.falcon.data.models.Commercials? = null,
     val media: com.kpn.falcon.data.models.MediaData? = null,
     val competitors: List<com.kpn.falcon.data.models.Competitor>? = null,
-    val contact: com.kpn.falcon.data.models.ContactInfo? = null
+    val contact: com.kpn.falcon.data.models.ContactInfo? = null,
+    val scoring: com.kpn.falcon.data.models.ScoringData? = null
 )
 
 data class PropertyFilter(

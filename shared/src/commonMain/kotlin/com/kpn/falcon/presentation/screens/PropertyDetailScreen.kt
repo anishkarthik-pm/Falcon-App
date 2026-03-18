@@ -25,6 +25,7 @@ import coil3.compose.AsyncImage
 import com.kpn.falcon.data.models.*
 import com.kpn.falcon.presentation.components.*
 import com.kpn.falcon.presentation.screens.detail.GeoIQTab
+import com.kpn.falcon.presentation.screens.detail.ScoringTab
 import com.kpn.falcon.presentation.theme.KPNColors
 import com.kpn.falcon.presentation.theme.KPNElevation
 import com.kpn.falcon.presentation.theme.KPNRadius
@@ -103,7 +104,7 @@ private fun PropertyDetailContent(
             when (state.activeTab) {
                 0 -> OverviewTab(property = property)
                 1 -> GeoIQTab(state = state, viewModel = viewModel)
-                2 -> DetailTabStub(title = "Scoring", subtitle = "Auto-suggest scores — available in Task 8")
+                2 -> ScoringTab(state = state, viewModel = viewModel)
                 3 -> DetailTabStub(title = "Comments", subtitle = "Comments & revision log — coming soon")
                 4 -> ApprovalsTab(approvalChain = property.approvalChain, status = property.status)
             }
