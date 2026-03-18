@@ -162,6 +162,16 @@ object Strings {
     const val DETAIL_TAB_COMMENTS = "Comments"
     const val DETAIL_TAB_APPROVALS = "Approvals"
 
+    // Property detail — section titles
+    const val DETAIL_SECTION_STORE_SPECS = "Store Specifications"
+    const val DETAIL_SECTION_ROAD = "Road & Accessibility"
+    const val DETAIL_SECTION_COMMERCIALS = "Commercial Details"
+    const val DETAIL_SECTION_COMPETITORS = "Competitors"
+    const val DETAIL_SECTION_CONTACT = "Contact Information"
+    const val DETAIL_APPROVAL_TRAIL = "Approval Trail"
+    const val DETAIL_MEDIA = "Media"
+    const val DETAIL_PHASE_LABEL = "Approval Phase"
+
     // Common
     const val LOADING = "Loading..."
     const val RETRY = "Retry"

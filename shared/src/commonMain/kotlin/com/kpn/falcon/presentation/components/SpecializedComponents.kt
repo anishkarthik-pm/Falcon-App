@@ -341,7 +341,8 @@ fun KPNStdChip(
 // ─────────────────────────────────────────────────
 
 /**
- * Green circular WhatsApp icon button shown in Property Detail header.
+ * Compact 40dp circular WhatsApp / call icon button.
+ * Used in Property Detail header.
  */
 @Composable
 fun WhatsAppButton(
@@ -362,6 +363,30 @@ fun WhatsAppButton(
             tint = KPNColors.Surface,
             modifier = Modifier.size(20.dp)
         )
+    }
+}
+
+/**
+ * Full-width WhatsApp action button with label text.
+ * Used in Step 7 (Contact) to open WhatsApp with a pre-filled message.
+ * Deep-linking implemented in Task 12.
+ */
+@Composable
+fun WhatsAppButton(
+    phone: String,
+    message: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier,
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = KPNColors.AccentGreen),
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, KPNColors.AccentGreen)
+    ) {
+        Icon(Icons.Default.Phone, contentDescription = null, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(6.dp))
+        Text("WhatsApp $phone", style = MaterialTheme.typography.labelMedium)
     }
 }
 
