@@ -36,7 +36,7 @@ val useCaseModule = module {
 
 val viewModelModule = module {
     viewModel { LoginViewModel(get(), get()) }
-    viewModel { HomeViewModel(get(), get()) }
+    viewModel { HomeViewModel(get()) }
     viewModel { PropertiesViewModel(get()) }
     viewModel { AddPropertyViewModel(get(), get(), get(), get()) }
     viewModel { (propertyId: String) -> PropertyDetailViewModel(propertyId, get()) }

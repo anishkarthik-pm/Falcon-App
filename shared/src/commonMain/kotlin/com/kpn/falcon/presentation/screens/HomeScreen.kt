@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import com.kpn.falcon.data.models.ActivityItem
 import com.kpn.falcon.data.models.DashboardStats
-import com.kpn.falcon.data.models.PropertyLead
 import com.kpn.falcon.di.SessionManager
 import com.kpn.falcon.domain.entities.User
 import com.kpn.falcon.domain.entities.UserRole
@@ -26,8 +25,8 @@ import com.kpn.falcon.presentation.theme.KPNRadius
 import com.kpn.falcon.presentation.theme.KPNTheme
 import com.kpn.falcon.presentation.viewmodels.HomeUiState
 import com.kpn.falcon.presentation.viewmodels.HomeViewModel
-import com.kpn.falcon.util.Strings
 import com.kpn.falcon.util.KPNConstants
+import com.kpn.falcon.util.Strings
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -37,13 +36,10 @@ fun HomeScreen() {
     val sessionManager = koinInject<SessionManager>()
     val state by viewModel.uiState.collectAsState()
     val user by sessionManager.currentUser.collectAsState()
-    val isOnline by viewModel.isOnline.collectAsState()
-
     KPNTheme {
         Surface(modifier = Modifier.fillMaxSize(), color = KPNColors.Background) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // Offline banner
-                if (!isOnline) OfflineBanner()
+                // OfflineBanner is shown by MainScreen at the scaffold level
 
                 when {
                     state.isLoading && state.stats == DashboardStats() -> KPNLoadingScreen()

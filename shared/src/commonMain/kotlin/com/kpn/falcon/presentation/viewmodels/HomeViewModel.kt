@@ -6,7 +6,6 @@ import com.kpn.falcon.data.models.ActivityItem
 import com.kpn.falcon.data.models.DashboardStats
 import com.kpn.falcon.data.models.PropertyLead
 import com.kpn.falcon.data.repository.PropertyRepository
-import com.kpn.falcon.util.NetworkMonitor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,14 +20,11 @@ data class HomeUiState(
 )
 
 class HomeViewModel(
-    private val propertyRepository: PropertyRepository,
-    private val networkMonitor: NetworkMonitor
+    private val propertyRepository: PropertyRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
-
-    val isOnline: StateFlow<Boolean> = networkMonitor.isConnected
 
     init {
         loadDashboard()
