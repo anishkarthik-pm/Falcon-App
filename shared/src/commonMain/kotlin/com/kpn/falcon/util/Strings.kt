@@ -114,19 +114,31 @@ object Strings {
     // Step 6 – Competition
     const val COMPETITION_HEADER = "👥 Competition Mapping — Document 3–5 nearby competitor stores"
     const val COMPETITION_ADD = "+ Add Competitor"
+    const val COMPETITION_ADD_COMPETITOR = "+ Add Competitor"
     const val COMPETITION_BRAND = "Brand Name"
-    const val COMPETITION_DISTANCE = "Distance from Property"
+    const val COMPETITION_BRAND_NAME = "Brand Name"
+    const val COMPETITION_DISTANCE = "Distance"
     const val COMPETITION_AREA = "Store Area"
+    const val COMPETITION_STORE_AREA = "Store Area"
     const val COMPETITION_RENT = "Rent per sqft"
+    const val COMPETITION_RENT_SQFT = "Rent per sqft"
     const val COMPETITION_SALES = "Sales/month"
+    const val COMPETITION_EMPTY = "No competitors added yet"
+    const val COMPETITION_EMPTY_HINT = "Add at least 3–5 nearby competitor stores"
+    const val COMPETITION_NOTE = "Include all grocery & FMCG stores within 500m radius"
 
     // Step 7 – Contact
     const val CONTACT_HEADER = "👤 Contact Information — Landlord & broker details of this property"
+    const val CONTACT_SOURCE_SECTION = "Contact Source"
+    const val CONTACT_LANDLORD_SECTION = "Landlord Details"
+    const val CONTACT_BROKER_SECTION = "Broker Details"
     const val CONTACT_LANDLORD_NAME = "Landlord Name"
     const val CONTACT_LANDLORD_PHONE = "Landlord Phone"
     const val CONTACT_LANDLORD_EMAIL = "Landlord Email"
     const val CONTACT_BROKER_NAME = "Broker Name"
     const val CONTACT_BROKER_PHONE = "Broker Phone"
+    const val CONTACT_SUMMARY_TITLE = "Submission Summary"
+    const val CONTACT_DEVIATION_WARNING = "⚠ Deviations from KPN standard terms will require BD Manager approval"
 
     // Submit
     const val SUBMIT = "Submit"
