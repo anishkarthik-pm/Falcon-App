@@ -39,7 +39,7 @@ val viewModelModule = module {
     viewModel { HomeViewModel(get()) }
     viewModel { PropertiesViewModel(get()) }
     viewModel { AddPropertyViewModel(get(), get(), get(), get()) }
-    viewModel { (propertyId: String) -> PropertyDetailViewModel(propertyId, get()) }
+    viewModel { (propertyId: String) -> PropertyDetailViewModel(propertyId, get(), get(), get(), get()) }
     viewModel { NotificationsViewModel(get()) }
 }
 

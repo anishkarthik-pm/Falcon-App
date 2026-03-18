@@ -24,6 +24,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import coil3.compose.AsyncImage
 import com.kpn.falcon.data.models.*
 import com.kpn.falcon.presentation.components.*
+import com.kpn.falcon.presentation.screens.detail.GeoIQTab
 import com.kpn.falcon.presentation.theme.KPNColors
 import com.kpn.falcon.presentation.theme.KPNElevation
 import com.kpn.falcon.presentation.theme.KPNRadius
@@ -50,9 +51,8 @@ data class PropertyDetailScreen(val propertyId: String) : Screen {
                         onRetry = viewModel::loadProperty
                     )
                     state.property != null -> PropertyDetailContent(
-                        property = state.property!!,
-                        activeTab = state.activeTab,
-                        onTabSelected = viewModel::onTabSelected,
+                        state = state,
+                        viewModel = viewModel,
                         onBack = { navigator.pop() }
                     )
                 }
@@ -68,11 +68,11 @@ data class PropertyDetailScreen(val propertyId: String) : Screen {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PropertyDetailContent(
-    property: PropertyLead,
-    activeTab: Int,
-    onTabSelected: (Int) -> Unit,
+    state: com.kpn.falcon.presentation.viewmodels.PropertyDetailUiState,
+    viewModel: PropertyDetailViewModel,
     onBack: () -> Unit
 ) {
+    val property = state.property!!
     val tabs = listOf(
         Strings.DETAIL_TAB_OVERVIEW,
         Strings.DETAIL_TAB_GEO_IQ,
@@ -97,12 +97,12 @@ private fun PropertyDetailContent(
                 .padding(innerPadding)
         ) {
             // Sticky tab row
-            DetailTabRow(tabs = tabs, activeTab = activeTab, onTabSelected = onTabSelected)
+            DetailTabRow(tabs = tabs, activeTab = state.activeTab, onTabSelected = viewModel::onTabSelected)
 
             // Tab content
-            when (activeTab) {
+            when (state.activeTab) {
                 0 -> OverviewTab(property = property)
-                1 -> DetailTabStub(title = "GeoIQ Report", subtitle = "Upload GeoIQ PDF — available in next task")
+                1 -> GeoIQTab(state = state, viewModel = viewModel)
                 2 -> DetailTabStub(title = "Scoring", subtitle = "Auto-suggest scores — available in Task 8")
                 3 -> DetailTabStub(title = "Comments", subtitle = "Comments & revision log — coming soon")
                 4 -> ApprovalsTab(approvalChain = property.approvalChain, status = property.status)

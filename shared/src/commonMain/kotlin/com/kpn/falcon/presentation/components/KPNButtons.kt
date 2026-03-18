@@ -23,7 +23,8 @@ fun KPNPrimaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
+    icon: ImageVector? = null
 ) {
     Button(
         onClick = onClick,
@@ -47,6 +48,10 @@ fun KPNPrimaryButton(
                 strokeWidth = 2.dp
             )
         } else {
+            if (icon != null) {
+                Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+            }
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelLarge
