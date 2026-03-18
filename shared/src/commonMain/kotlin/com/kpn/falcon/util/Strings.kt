@@ -160,6 +160,7 @@ object Strings {
     const val DETAIL_TAB_GEO_IQ = "GeoIQ report"
     const val DETAIL_TAB_SCORING = "Scoring"
     const val DETAIL_TAB_COMMENTS = "Comments"
+    const val DETAIL_TAB_COMMERCIALS = "Commercials"
     const val DETAIL_TAB_APPROVALS = "Approvals"
 
     // Property detail — section titles

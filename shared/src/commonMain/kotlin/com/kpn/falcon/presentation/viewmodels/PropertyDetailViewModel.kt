@@ -4,11 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kpn.falcon.data.api.PropertyApiService
 import com.kpn.falcon.data.api.UpdatePropertyRequest
+import com.kpn.falcon.data.models.ApprovalAction
 import com.kpn.falcon.data.models.PropertyLead
 import com.kpn.falcon.data.models.ScoringData
 import com.kpn.falcon.data.repository.PropertyRepository
 import com.kpn.falcon.domain.usecase.AutoSuggestScoringUseCase
 import com.kpn.falcon.domain.usecase.CalculateCompositeScoreUseCase
+import com.kpn.falcon.domain.usecase.DeviationCheckUseCase
+import com.kpn.falcon.domain.usecase.DeviationResult
 import com.kpn.falcon.domain.usecase.SLACountdownUseCase
 import com.kpn.falcon.domain.usecase.SuggestedScore
 import com.kpn.falcon.util.FilePicker
@@ -38,7 +41,13 @@ data class PropertyDetailUiState(
     val compositeScore: Float? = null,
     val scoringSaving: Boolean = false,
     val scoringError: String? = null,
-    val scoringSaved: Boolean = false
+    val scoringSaved: Boolean = false,
+    // Commercials deviations
+    val commercialDeviations: List<DeviationResult> = emptyList(),
+    // Approval action
+    val approvalSubmitting: Boolean = false,
+    val approvalError: String? = null,
+    val approvalSuccess: Boolean = false
 )
 
 class PropertyDetailViewModel(
@@ -48,7 +57,8 @@ class PropertyDetailViewModel(
     private val slaCountdown: SLACountdownUseCase,
     private val filePicker: FilePicker,
     private val autoSuggestScoring: AutoSuggestScoringUseCase,
-    private val calculateCompositeScore: CalculateCompositeScoreUseCase
+    private val calculateCompositeScore: CalculateCompositeScoreUseCase,
+    private val deviationCheck: DeviationCheckUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PropertyDetailUiState())
@@ -99,7 +109,8 @@ class PropertyDetailViewModel(
                     slaIsBreached = slaCountdown.isBreached(deadline),
                     suggestedScores = suggestions,
                     currentScores = initScores,
-                    compositeScore = composite
+                    compositeScore = composite,
+                    commercialDeviations = deviationCheck.check(property.commercials)
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -199,6 +210,32 @@ class PropertyDetailViewModel(
                 _uiState.value = _uiState.value.copy(scoringError = e.message ?: "Confirmation failed")
             }
         }
+    }
+
+    // ─── Approval actions ─────────────────────────────
+
+    fun submitApproval(action: ApprovalAction) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(approvalSubmitting = true, approvalError = null)
+            try {
+                val updated = propertyRepository.submitApproval(propertyId, action)
+                _uiState.value = _uiState.value.copy(
+                    approvalSubmitting = false,
+                    approvalSuccess = true,
+                    property = updated,
+                    commercialDeviations = deviationCheck.check(updated.commercials)
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    approvalSubmitting = false,
+                    approvalError = e.message ?: "Action failed. Please try again."
+                )
+            }
+        }
+    }
+
+    fun dismissApprovalResult() {
+        _uiState.value = _uiState.value.copy(approvalSuccess = false, approvalError = null)
     }
 
     private fun computeComposite(scores: Map<String, Int>): Float {
