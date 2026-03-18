@@ -1,0 +1,88 @@
+-- SQLDelight schema for PropertyLead offline cache
+
+CREATE TABLE IF NOT EXISTS PropertyLeadCache (
+    property_id TEXT NOT NULL PRIMARY KEY,
+    bd_executive_id TEXT NOT NULL,
+    bd_manager_id TEXT,
+    state_head_id TEXT,
+    status TEXT NOT NULL DEFAULT 'DRAFT',
+    phase INTEGER NOT NULL DEFAULT 1,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    -- Store serialized JSON blobs for nested data
+    location_json TEXT NOT NULL DEFAULT '{}',
+    store_specs_json TEXT NOT NULL DEFAULT '{}',
+    road_access_json TEXT NOT NULL DEFAULT '{}',
+    commercials_json TEXT NOT NULL DEFAULT '{}',
+    media_json TEXT NOT NULL DEFAULT '{}',
+    competitors_json TEXT NOT NULL DEFAULT '[]',
+    contact_json TEXT NOT NULL DEFAULT '{}',
+    geo_iq_json TEXT,
+    scoring_json TEXT,
+    approval_chain_json TEXT NOT NULL DEFAULT '[]',
+    -- Flat fields for fast querying
+    city TEXT NOT NULL DEFAULT '',
+    state TEXT NOT NULL DEFAULT '',
+    total_area INTEGER NOT NULL DEFAULT 0,
+    carpet_area INTEGER NOT NULL DEFAULT 0,
+    landlord_rent_per_sqft REAL NOT NULL DEFAULT 0.0,
+    bd_offered_rent_per_sqft REAL NOT NULL DEFAULT 0.0,
+    is_synced INTEGER NOT NULL DEFAULT 0
+);
+
+-- Queries
+selectAll:
+SELECT * FROM PropertyLeadCache ORDER BY updated_at DESC;
+
+selectById:
+SELECT * FROM PropertyLeadCache WHERE property_id = :propertyId;
+
+selectByStatus:
+SELECT * FROM PropertyLeadCache WHERE status = :status ORDER BY updated_at DESC;
+
+searchProperties:
+SELECT * FROM PropertyLeadCache
+WHERE property_id LIKE :query
+   OR city LIKE :query
+ORDER BY updated_at DESC;
+
+upsert:
+INSERT OR REPLACE INTO PropertyLeadCache VALUES (
+    :property_id,
+    :bd_executive_id,
+    :bd_manager_id,
+    :state_head_id,
+    :status,
+    :phase,
+    :created_at,
+    :updated_at,
+    :location_json,
+    :store_specs_json,
+    :road_access_json,
+    :commercials_json,
+    :media_json,
+    :competitors_json,
+    :contact_json,
+    :geo_iq_json,
+    :scoring_json,
+    :approval_chain_json,
+    :city,
+    :state,
+    :total_area,
+    :carpet_area,
+    :landlord_rent_per_sqft,
+    :bd_offered_rent_per_sqft,
+    :is_synced
+);
+
+deleteById:
+DELETE FROM PropertyLeadCache WHERE property_id = :propertyId;
+
+markSynced:
+UPDATE PropertyLeadCache SET is_synced = 1 WHERE property_id = :propertyId;
+
+countAll:
+SELECT COUNT(*) FROM PropertyLeadCache;
+
+countByStatus:
+SELECT COUNT(*) FROM PropertyLeadCache WHERE status = :status;

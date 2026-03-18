@@ -1,0 +1,35 @@
+# Gradle
+.gradle/
+build/
+**/build/
+local.properties
+*.local.properties
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+
+# Android
+/androidApp/release/
+
+# iOS
+iosApp/Pods/
+iosApp/*.xcworkspace/
+iosApp/xcuserdata/
+*.xcuserdata/
+
+# KMP
+shared/.kotlin/
+shared/src/*/res/
+
+# Kotlin
+*.class
+*.jar
+*.war
+
+# Environment
+.env
+*.env
