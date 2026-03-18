@@ -1,8 +1,6 @@
 package com.kpn.falcon.di
 
-import com.kpn.falcon.data.api.KtorClientFactory
-import com.kpn.falcon.data.api.PropertyApiService
-import com.kpn.falcon.data.api.PropertyApiServiceImpl
+import com.kpn.falcon.data.api.*
 import com.kpn.falcon.data.repository.PropertyRepository
 import com.kpn.falcon.data.repository.PropertyRepositoryImpl
 import com.kpn.falcon.domain.usecase.*
@@ -17,7 +15,10 @@ private const val BASE_URL = "https://api.kpnfalcon.com/v1"
 val networkModule = module {
     single { KtorClientFactory.createKtorClient { get<SessionManager>().getToken() } }
     single<PropertyApiService> { PropertyApiServiceImpl(get(), BASE_URL) }
+    single<AuthApiService> { AuthApiServiceImpl(get(), BASE_URL) }
 }
+
+// NetworkMonitor is platform-specific (see platformModule in androidMain/iosMain)
 
 val repositoryModule = module {
     single<PropertyRepository> { PropertyRepositoryImpl(get()) }
@@ -34,7 +35,8 @@ val useCaseModule = module {
 }
 
 val viewModelModule = module {
-    viewModel { HomeViewModel(get()) }
+    viewModel { LoginViewModel(get(), get()) }
+    viewModel { HomeViewModel(get(), get()) }
     viewModel { PropertiesViewModel(get()) }
     viewModel { AddPropertyViewModel(get(), get(), get(), get()) }
     viewModel { (propertyId: String) -> PropertyDetailViewModel(propertyId, get()) }
@@ -50,6 +52,7 @@ fun initKoin(appDeclaration: KoinAppDeclaration = {}) {
         appDeclaration()
         modules(
             sessionModule,
+            platformModule,
             networkModule,
             repositoryModule,
             useCaseModule,

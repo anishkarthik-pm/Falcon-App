@@ -6,6 +6,7 @@ import com.kpn.falcon.data.models.ActivityItem
 import com.kpn.falcon.data.models.DashboardStats
 import com.kpn.falcon.data.models.PropertyLead
 import com.kpn.falcon.data.repository.PropertyRepository
+import com.kpn.falcon.util.NetworkMonitor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,11 +21,14 @@ data class HomeUiState(
 )
 
 class HomeViewModel(
-    private val propertyRepository: PropertyRepository
+    private val propertyRepository: PropertyRepository,
+    private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    val isOnline: StateFlow<Boolean> = networkMonitor.isConnected
 
     init {
         loadDashboard()
@@ -37,7 +41,8 @@ class HomeViewModel(
                 val stats = propertyRepository.getDashboardStats()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    stats = stats
+                    stats = stats,
+                    activities = buildSampleActivities()  // replaced by real endpoint in Task 11
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -47,4 +52,7 @@ class HomeViewModel(
             }
         }
     }
+
+    // Placeholder until /dashboard/activities endpoint is added
+    private fun buildSampleActivities(): List<ActivityItem> = emptyList()
 }
